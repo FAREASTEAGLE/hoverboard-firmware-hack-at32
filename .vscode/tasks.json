@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (AT32)",
+            "type": "shell",
+            "command": "make AT32",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Build (STM32)",
+            "type": "shell",
+            "command": "make STM32",
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}

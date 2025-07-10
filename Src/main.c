@@ -34,7 +34,7 @@ RT_MODEL rtM_Right_;   /* Real-time model */
 RT_MODEL *const rtM_Left = &rtM_Left_;
 RT_MODEL *const rtM_Right = &rtM_Right_;
 
-P rtP;                           /* Block parameters (auto storage) */
+extern P rtP;                           /* Block parameters (auto storage) */
 
 DW rtDW_Left;                    /* Observable states */
 ExtU rtU_Left;                   /* External inputs */
@@ -224,7 +224,7 @@ int main(void) {
   #endif
 
   int speedL = 0, speedR = 0;
-  float direction = 1;
+  // float direction = 1;
   local_speed_coefficent = SPEED_COEFFICIENT;
   local_steer_coefficent = STEER_COEFFICIENT;
 

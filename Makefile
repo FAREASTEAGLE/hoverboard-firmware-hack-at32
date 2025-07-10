@@ -79,7 +79,7 @@ SZ = $(PREFIX)size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 TOUCH = echo "" > 
-RM = del /q
+RM = if exist
 
 #######################################
 # CFLAGS
@@ -231,7 +231,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@
 
 $(BUILD_DIR):
-	mkdir -p $@
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 
 format:
 	find Src/ Inc/ -iname '*.h' -o -iname '*.c' | xargs clang-format -i

@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/Inc",
+                "${workspaceFolder}/Drivers/Modified_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/CMSIS/CM4/DeviceSupport",
+                "${workspaceFolder}/Drivers/CMSIS/CM4/CoreSupport"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "AT32F403Rx_HD"
+            ],
+            "compilerPath": "arm-none-eabi-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
