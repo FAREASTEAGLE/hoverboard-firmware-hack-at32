@@ -3,12 +3,18 @@
 ######################################
 TARGET = hover
 
-ifneq "$(findstring AT32, $(MAKECMDGOALS))" ""
-TARGET_MCU = AT32
-else ifneq "$(findstring STM32, $(MAKECMDGOALS))" ""
-TARGET_MCU = STM32
+ifeq ($(findstring AT32F413, $(MAKECMDGOALS)),AT32F413)
+  TARGET_MCU = AT32F413
 else
-TARGET_MCU = AT32
+  ifeq ($(findstring AT32, $(MAKECMDGOALS)),AT32)
+    TARGET_MCU = AT32
+  else
+    ifeq ($(findstring STM32, $(MAKECMDGOALS)),STM32)
+      TARGET_MCU = STM32
+    else
+      TARGET_MCU = AT32
+    endif
+  endif
 endif
 
 ######################################
@@ -59,7 +65,10 @@ C_SOURCES := $(C_SOURCES) Src/system_stm32f1xx.c
 endif
 
 # ASM sources
-ifeq ($(TARGET_MCU), AT32)
+ifeq ($(TARGET_MCU), AT32F413)
+ASM_SOURCES =  \
+startup_at32f413.s
+else ifeq ($(TARGET_MCU), AT32)
 ASM_SOURCES =  \
 startup_at32f403xe.s
 else
@@ -79,17 +88,24 @@ SZ = $(PREFIX)size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 TOUCH = echo "" > 
-RM = if exist
+# Удаляем переменную RM, чтобы не было путаницы
 
 #######################################
 # CFLAGS
 #######################################
 # cpu
-ifeq ($(TARGET_MCU),AT32)
+ifeq ($(TARGET_MCU), AT32F413)
 	CPU = -mcpu=cortex-m4
 
 	# fpu
 	FPU=-mfpu=fpv4-sp-d16
+	# float-abi
+	FLOAT-ABI=-mfloat-abi=softfp
+else ifeq ($(TARGET_MCU), AT32)
+	CPU = -mcpu=cortex-m4
+	# fpu
+	# NONE for Cortex-M0/M0+/M3
+
 	# float-abi
 	FLOAT-ABI=-mfloat-abi=softfp
 else
@@ -109,7 +125,11 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS =
 
 # C defines
-ifeq ($(TARGET_MCU), AT32)
+ifeq ($(TARGET_MCU), AT32F413)
+C_DEFS =  \
+-DUSE_HAL_DRIVER \
+-DAT32F413Rx_HD
+else ifeq ($(TARGET_MCU), AT32)
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DAT32F403Rx_HD
@@ -157,7 +177,9 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-ifeq ($(TARGET_MCU), AT32)
+ifeq ($(TARGET_MCU), AT32F413)
+LDSCRIPT = AT32F413RCTx_FLASH.ld
+else ifeq ($(TARGET_MCU), AT32)
 LDSCRIPT = AT32F403RCTx_FLASH.ld
 else
 LDSCRIPT = STM32F103RCTx_FLASH.ld
@@ -177,21 +199,25 @@ pre-build:
 ifeq ($(TARGET_MCU), AT32)
 ifneq ("$(wildcard ./build/target_stm32)","")
 	@echo Found files from a previous compilation for STM32, clean them up now
-	$(RM) build\*
+	rmdir /s /q build
+	@if not exist build mkdir build
 	$(TOUCH) ./build/target_at32
 endif
 ifeq ("$(wildcard ./build/target_at32)","")
 	@echo Create target lock file for AT32
+	@if not exist build mkdir build
 	$(TOUCH) ./build/target_at32
 endif
 else
 ifneq ("$(wildcard ./build/target_at32)","")
 	@echo Found files from a previous compilation for AT32, clean them up now
-	$(RM) build\*
+	rmdir /s /q build
+	@if not exist build mkdir build
 	$(TOUCH) ./build/target_stm32
 endif
 ifeq ("$(wildcard ./build/target_stm32)","")
 	@echo Create target lock file for STM32
+	@if not exist build mkdir build
 	$(TOUCH) ./build/target_stm32
 endif
 endif		
@@ -251,11 +277,14 @@ unlock:
 	openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c init -c "reset halt" -c "stm32f1x unlock 0"
 
 #empty target for MCU selection
+AT32F413: all
+	@echo Build for target [$(TARGET_MCU)]
+
 AT32: all
-	@echo Build for target [$(TARGET_MCU)] 
-	
+	@echo Build for target [$(TARGET_MCU)]
+
 STM32: all
-	@echo Build for target [$(TARGET_MCU)] 
+	@echo Build for target [$(TARGET_MCU)]
 
 #######################################
 # dependencies
